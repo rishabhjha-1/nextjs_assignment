@@ -50,15 +50,13 @@ Below is the design that you need to implement:
 
 [Link to Figma](https://www.figma.com/design/2sjwN6l1ZBj9nPuG40mAOu/Plutus-Hire-Audition-Design?node-id=0-1&t=2puEYrpAgTWv4Vec-1)
 
-<iframe style="border: 1px solid rgba(0, 0, 0, 0.1);" width="800" height="450" src="https://embed.figma.com/design/2sjwN6l1ZBj9nPuG40mAOu/Plutus-Hire-Audition-Design?node-id=0-1&embed-host=share" allowfullscreen></iframe>
-
 ## API Documentation for World Bank API
 
 The World Bank API provides access to a wide range of global data, including population statistics. This documentation covers how to fetch population-related data using the API and includes examples for various use cases.
 
 <details>
   <summary>API Documentation with examples</summary>
-  
+
 ### Base API Endpoint
 
 The base URL for querying the World Bank API is:
