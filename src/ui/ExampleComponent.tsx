@@ -1,7 +1,7 @@
 'use client';
 import useAppDispatch from "@/lib/hooks/appDispatch";
 import useAppSelector from "@/lib/hooks/appSelector";
-import { decrement, fetchValue, increment } from "@/lib/store/featureSlice";
+import { decrement, fetchValue, increment } from "@/lib/store/populationSlice";
 import { RootState } from "@/lib/store/store";
 
 const ExampleComponent = () => {
