@@ -10,17 +10,18 @@ import {
 } from "@/lib/store/populationSlice";
 import PopulationChart from "@/ui/PopulationChartComponent";
 import PopulationTable from "@/ui/PopulationTable";
+import useAppSelector from "@/lib/hooks/appSelector";
+import useAppDispatch from "@/lib/hooks/appDispatch";
 
 export default function Population() {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const {
-    populationData,
     historicalData,
     selectedIndicator,
     selectedTimeRange,
     isLoading,
     error,
-  } = useSelector((state: RootState) => state.population);
+  } = useAppSelector((state: RootState) => state.population);
 
   const fetchData = useCallback(() => {
     dispatch(fetchHistoricalDataAsync())

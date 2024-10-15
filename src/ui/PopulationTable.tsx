@@ -6,9 +6,11 @@ import {
   setSelectedYear,
   setCurrentPage,
 } from '@/lib/store/populationSlice';
+import useAppSelector from '@/lib/hooks/appSelector';
+import useAppDispatch from '@/lib/hooks/appDispatch';
 
 const PopulationTable = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const {
     countryData,
     historicalData,
@@ -19,7 +21,7 @@ const PopulationTable = () => {
     selectedYear,
     isLoading,
     error,
-  } = useSelector((state: RootState) => state.population);
+  } = useAppSelector((state: RootState) => state.population);
 
   useEffect(() => {
     dispatch(fetchCountryDataAsync());
