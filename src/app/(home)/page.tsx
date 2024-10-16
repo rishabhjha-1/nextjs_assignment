@@ -11,6 +11,7 @@ import {
 import PopulationChart from "@/ui/PopulationChartComponent";
 import useAppSelector from "@/lib/hooks/appSelector";
 import useAppDispatch from "@/lib/hooks/appDispatch";
+import Link from "next/link";
 
 export default function Population() {
   const dispatch = useAppDispatch();
@@ -88,8 +89,11 @@ export default function Population() {
                 Life Expentacy at Birth
               </div>
               <div className="text-2xl text-black font-bold ">
-                {lifeExpentancyValue.toFixed(1)} Yrs
+                {lifeExpentancyValue.toFixed(0)} Yrs
               </div>
+            </div>
+            <div className="text-center">
+              <Link href='/population' className="w-[113px] h-[38px] px-[24px] text-white font-bold py-[11px] gap-[10px] rounded-[24.36px] bg-gradient-to-r from-[#5B00FF] text-xs to-[#FB8D8D] ">Dive deeper</Link>
             </div>
           </div>
           <PopulationChart data={historicalData} />
