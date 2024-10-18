@@ -1,10 +1,12 @@
-import React, { useEffect } from 'react';
+"use client"
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/lib/store/store';
 import {
   fetchCountryDataAsync,
   setSelectedYear,
   setCurrentPage,
+  fetchHistoricalDataAsync,
 } from '@/lib/store/populationSlice';
 import useAppSelector from '@/lib/hooks/appSelector';
 import useAppDispatch from '@/lib/hooks/appDispatch';
@@ -21,10 +23,12 @@ const PopulationTable = () => {
     selectedYear,
     isLoading,
     error,
+    countriesDataValue
   } = useAppSelector((state: RootState) => state.population);
 
   useEffect(() => {
     dispatch(fetchCountryDataAsync());
+    dispatch(fetchHistoricalDataAsync());
   }, [dispatch, selectedYear, currentPage]);
 
   const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -36,7 +40,7 @@ const PopulationTable = () => {
       dispatch(setCurrentPage(currentPage + 1));
     }
   };
-
+  
   const years = Array.from({ length: 60 }, (_, i) => new Date().getFullYear() - i);
 
   return (
@@ -84,15 +88,15 @@ const PopulationTable = () => {
                   <td className="px-4 py-2 border-r border-gray-300">{ '-'}</td>
                   <td className="px-4 py-2">{ '-'}</td>
                 </tr>
-              {countryData.map((country, index) => (
+              {countriesDataValue?.map((country:any, index:number) => (
                 <tr key={country.id || index} >
-                  <td className="px-4 py-2 border-r border-gray-300">{country.name || '-'}</td>
+                  <td className="px-4 py-2 border-r border-gray-300">{country.country || '-'}</td>
                   <td className="px-4 py-2 border-r border-gray-300">{country.population || '-'}</td>
-                  <td className="px-4 py-2 border-r border-gray-300">{country.populationDensity || '-'}</td>
+                  <td className="px-4 py-2 border-r border-gray-300">{typeof country.density === 'number' ?country.density.toFixed(1) : '-'}</td>
                   <td className="px-4 py-2 border-r border-gray-300">{country.growthRate || '-'}</td>
-                  <td className="px-4 py-2 border-r border-gray-300">{country.lifeExpAtBirth || '-'}</td>
-                  <td className="px-4 py-2 border-r border-gray-300">{country.birthRate || '-'}</td>
-                  <td className="px-4 py-2 border-r border-gray-300">{country.deathRate || '-'}</td>
+                  <td className="px-4 py-2 border-r border-gray-300">{typeof country.lifeExpAtBirth === 'number' ? country.lifeExpAtBirth.toFixed(1) : '-'}</td>
+                  <td className="px-4 py-2 border-r border-gray-300"> {typeof country.birthRate === 'number' ? country.birthRate.toFixed(1) : '-'}</td>
+                  <td className="px-4 py-2 border-r border-gray-300"> {typeof country.deathRate === 'number' ? country.deathRate.toFixed(1) : '-'}</td>
                   <td className="px-4 py-2">{country.fertilityRate || '-'}</td>
                 </tr>
               ))}

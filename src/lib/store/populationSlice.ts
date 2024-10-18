@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import {  fetchCountryData, fetchHistoricalPopulationData } from '@/lib/api'
+import {  fetchCountryData, fetchHistoricalPopulationData, fetchPopulationData } from '@/lib/api'
 
 interface PopulationState {
   populationData: any;
@@ -14,8 +14,8 @@ interface PopulationState {
   countryData: any[];
   currentPage: number;
   totalPages: number;
-  selectedYear: number;
-  
+  selectedYear: any;
+  countriesDataValue:any
 }
 
 const initialState: PopulationState = {
@@ -31,7 +31,8 @@ const initialState: PopulationState = {
   countryData: [],
   currentPage: 1,
   totalPages: 1,
-  selectedYear: new Date().getFullYear(),
+  selectedYear: 2022,
+  countriesDataValue:[]
 
 };
 
@@ -49,28 +50,22 @@ export const fetchHistoricalDataAsync = createAsyncThunk(
   'population/fetchHistoricalData',
   async (_, { getState }) => {
     const state = getState() as { population: PopulationState };
-    const { selectedIndicator,selectedTimeRange } = state.population;
-    return await fetchHistoricalPopulationData(selectedIndicator,selectedTimeRange);
-  }
-);
-export const populationDataAsync = createAsyncThunk(
-  'population/populationData',
-  async (_, { getState }) => {
-    return await fetchHistoricalPopulationData("population","10Yrs");
-  }
-);
-export const avgDensity = createAsyncThunk(
-  'population/averageDensity',
-  async (_, { getState }) => {
-    return await fetchHistoricalPopulationData("populationDensity","10Yrs");
-  }
-);
-export const lifeExpentancy = createAsyncThunk(
-  'population/lifeExpentancy',
-  async (_, { getState }) => {
-    const res=await fetchHistoricalPopulationData("lifeExpAtBirth","5Yrs");
-    console.log(res)
-    const sortedData = res
+    const { selectedIndicator,selectedTimeRange,selectedYear } = state.population;
+    const historicalData= await fetchHistoricalPopulationData(selectedIndicator,selectedTimeRange);
+    const populationData= await fetchHistoricalPopulationData("population","10Yrs");
+    const averageDensity= await fetchHistoricalPopulationData("populationDensity","10Yrs")
+    console.log({selectedYear})
+    const countriesDataValue=await fetchPopulationData(selectedYear)
+    console.log(countriesDataValue,'ds')
+    const values = averageDensity.map((item: { value: any; }) => item.value).filter((value: null) => value !== null) as number[];
+
+    const total = values.reduce((sum, value) => sum + value, 0);
+    const average = values.length > 0 ? total / 10 : null; // Avoid division by zero
+
+    const averageDensityData = average || 0 ; // 
+    const lifeExpentancy=await fetchHistoricalPopulationData("lifeExpAtBirth","5Yrs");
+    console.log(lifeExpentancy)
+    const sortedData = lifeExpentancy
     .filter((data: { value: null; }) => data.value !== null) // Filter out null values
     .sort((a: { date: number; }, b: { date: number; }) => b.date - a.date); // Sort by date in descending order
 
@@ -79,9 +74,40 @@ export const lifeExpentancy = createAsyncThunk(
   if (!currentYearData) {
     throw new Error("No data available to calculate life expectancy");
   }
-  return currentYearData.value;
+  const lifeExpentancyValue= currentYearData.value;
+  return {historicalData,populationData,averageDensityData,lifeExpentancyValue,countriesDataValue}
+
   }
 );
+
+//   'population/populationData',
+//   async (_, { getState }) => {
+//     return await fetchHistoricalPopulationData("population","10Yrs");
+//   }
+// );
+// export const avgDensity = createAsyncThunk(
+//   'population/averageDensity',
+//   async (_, { getState }) => {
+//     return await fetchHistoricalPopulationData("populationDensity","10Yrs");
+//   }
+// );
+// export const lifeExpentancy = createAsyncThunk(
+//   'population/lifeExpentancy',
+//   async (_, { getState }) => {
+//     const res=await fetchHistoricalPopulationData("lifeExpAtBirth","5Yrs");
+//     console.log(res)
+//     const sortedData = res
+//     .filter((data: { value: null; }) => data.value !== null) // Filter out null values
+//     .sort((a: { date: number; }, b: { date: number; }) => b.date - a.date); // Sort by date in descending order
+
+//   const currentYearData = sortedData[0]; // Get the most recent year data
+
+//   if (!currentYearData) {
+//     throw new Error("No data available to calculate life expectancy");
+//   }
+//   return currentYearData.value;
+//   }
+// );
 
 
 // Function to calculate the population increase from the last year
@@ -136,56 +162,19 @@ const populationSlice = createSlice({
       .addCase(fetchHistoricalDataAsync.fulfilled, (state, action) => {
         
         state.isLoading = false;
-        state.historicalData = action.payload;
+        state.historicalData = action.payload.historicalData;
+        state.averageDensityData=action.payload.averageDensityData
+        state.lifeExpentancyValue=action.payload.lifeExpentancyValue
+        state.populationData=action.payload.lifeExpentancyValue
+        state.populationIncrease= calculatePopulationIncrease(action.payload.historicalData)
+        state.countriesDataValue=action.payload.countriesDataValue
       
       })
       .addCase(fetchHistoricalDataAsync.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message || 'Failed to fetch historical data';
       })
-        .addCase(populationDataAsync.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(populationDataAsync.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.historicalData = action.payload;
-        console.log("Fetched Historical Data:", action.payload);
-        try {
-          const  increase= calculatePopulationIncrease(action.payload);
-          state.populationIncrease = increase;
-        } catch (error) {
-          console.error("Error calculating population increase:", error);
-        }
-      })
-      .addCase(populationDataAsync.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message || 'Failed to fetch historical data';
-      })
-      .addCase(avgDensity.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(avgDensity.fulfilled, (state, action) => {
-        state.isLoading = false;
-
-        // Calculate the average density value
-        const values = action.payload.map((item: { value: any; }) => item.value).filter((value: null) => value !== null) as number[];
-
-        const total = values.reduce((sum, value) => sum + value, 0);
-        const average = values.length > 0 ? total / 10 : null; // Avoid division by zero
-
-        state.averageDensityData = average || 0 ; // Set the average density in state
-      })
-      .addCase(avgDensity.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message || 'Failed to fetch average density data';
-      })
-      .addCase(lifeExpentancy.fulfilled, (state, action) => {
-
-
-        state.lifeExpentancyValue = action.payload ; // Set the average density in state
-      })
+   
       .addCase(fetchCountryDataAsync.pending, (state) => {
         state.isLoading = true;
         state.error = null;
