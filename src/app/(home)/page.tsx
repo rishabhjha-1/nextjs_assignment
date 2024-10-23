@@ -4,9 +4,7 @@ import { useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "@/lib/store/store";
 import {
-  avgDensity,
-  lifeExpentancy,
-  populationDataAsync,
+  fetchHistoricalDataAsync,
 } from "@/lib/store/populationSlice";
 import PopulationChart from "@/ui/PopulationChartComponent";
 import useAppSelector from "@/lib/hooks/appSelector";
@@ -22,28 +20,18 @@ export default function Population() {
     averageDensityData,
     populationIncrease,
     lifeExpentancyValue,
+  
   } = useAppSelector((state: RootState) => state.population);
 
   const fetchData = useCallback(() => {
-    dispatch(populationDataAsync())
-      .then((result) => console.log("Fetch result:", result))
-      .catch((error) => console.error("Fetch error:", error));
-  }, [dispatch, selectedIndicator, selectedTimeRange]);
-  const fetchAverageDensity = useCallback(() => {
-    dispatch(avgDensity())
-      .then((result) => console.log("Fetch result:", result))
-      .catch((error) => console.error("Fetch error:", error));
-  }, [dispatch, selectedIndicator, selectedTimeRange]);
-  const fetchLifeExpectancy = useCallback(() => {
-    dispatch(lifeExpentancy())
+    dispatch(fetchHistoricalDataAsync())
       .then((result) => console.log("Fetch result:", result))
       .catch((error) => console.error("Fetch error:", error));
   }, [dispatch, selectedIndicator, selectedTimeRange]);
 
   useEffect(() => {
     fetchData();
-    fetchAverageDensity();
-    fetchLifeExpectancy()
+  
   }, [fetchData]);
 
   return (
@@ -60,7 +48,7 @@ export default function Population() {
         <div className="text-center w-[482px] h-auto rounded-[12px] p-[24px_51px_24px_51px] gap-[10px] bg-[#F6F7F5]">
           <div className="text-xs text-gray-500 font-bold">Average density</div>
           <div className="text-2xl text-black font-bold text-center">
-            {averageDensityData.toFixed(0)} p/sqft
+            {averageDensityData.toFixed(1)} p/sqft
           </div>
         </div>
 

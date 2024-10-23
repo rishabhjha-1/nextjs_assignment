@@ -49,18 +49,92 @@ export async function fetchHistoricalPopulationData(
   return data[1];
 }
 
-export async function fetchCountryData(year: number, page: number, pageSize: number = 50) {
-    const indicators = Object.values(INDICATORS).join(';');
-    const response = await fetch(
-      `${BASE_URL}/country?date=${year}&format=json&per_page=${pageSize}&page=${page}`
-    );
-    if (!response.ok) {
-      throw new Error("Failed to fetch country data");
-    }
-  
-    const data = await response.json();
-    return {
-      countries: data[1],
-      totalPages: Math.ceil(data[0].total / pageSize)
-    };
+export async function fetchCountryData(
+  year: number,
+  page: number,
+  pageSize: number = 50
+) {
+  const indicators = Object.values(INDICATORS).join(";");
+  const response = await fetch(
+    `${BASE_URL}/country?date=${year}&format=json&per_page=${pageSize}&page=${page}`
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch country data");
   }
+
+  const data = await response.json();
+  return {
+    countries: data[1],
+    totalPages: Math.ceil(data[0].total / pageSize),
+  };
+}
+
+
+
+
+export const fetchPopulationData = async (selectedYear: any) => {
+  try {
+    // Fetch data from APIs
+    const [countryRes, populationRes, birthRateRes, deathRateRes, densityRes] =
+      await Promise.all([
+        fetch(
+          "https://api.worldbank.org/v2/country/all?format=json&per_page=1000"
+        ),
+        fetch(
+          `https://api.worldbank.org/v2/country/all/indicator/SP.POP.TOTL?date=${selectedYear}&format=json&per_page=1000`
+        ),
+        fetch(
+          `https://api.worldbank.org/v2/country/all/indicator/SP.DYN.CBRT.IN?date=${selectedYear}&format=json&per_page=1000`
+        ),
+        fetch(
+          `https://api.worldbank.org/v2/country/all/indicator/SP.DYN.CDRT.IN?date=${selectedYear}&format=json&per_page=1000`
+        ),
+        fetch(
+          `https://api.worldbank.org/v2/country/all/indicator/EN.POP.DNST?date=${selectedYear}&format=json&per_page=1000`
+        ),
+      ]);
+
+    const countryData = await countryRes.json();
+    const populationData = await populationRes.json();
+    const birthRateData = await birthRateRes.json();
+    const deathRateData = await deathRateRes.json();
+    const densityData = await densityRes.json();
+
+    const countryMap = new Map(
+      countryData[1]?.map((country: any) => [country.id, country])
+    );
+
+    console.log("Country Map:", Array.from(countryMap.keys()));
+
+    const populationMap = new Map(
+      populationData[1]?.map((item: any) => [item.countryiso3code, item.value])
+    );
+    const birthRateMap = new Map(
+      birthRateData[1]?.map((item: any) => [item.countryiso3code, item.value])
+    );
+    const deathRateMap = new Map(
+      deathRateData[1]?.map((item: any) => [item.countryiso3code, item.value])
+    );
+    const densityMap = new Map(
+      densityData[1]?.map((item: any) => [item.countryiso3code, item.value])
+    );
+    console.log({ populationData });
+    console.log("Population Map:", Array.from(populationMap.keys()));
+
+    const combinedData = Array.from(countryMap.values()).map((country: any) => {
+      const isoCode = country?.id;
+      return {
+        country: country?.name,
+        population: populationMap.get(isoCode) || "-",
+        birthRate: birthRateMap.get(isoCode) || "-",
+        deathRate: deathRateMap.get(isoCode) || "-",
+        density: densityMap.get(isoCode) || "-",
+      };
+    });
+
+    console.log(combinedData, "combinedData");
+    return combinedData;
+  } catch (error: any) {
+    throw new Error("Failed to fetch population data: " + error.message);
+  }
+};
