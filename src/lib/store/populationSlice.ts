@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import {  fetchCountryData, fetchHistoricalPopulationData, fetchPopulationData } from '@/lib/api'
+import {  fetchCountryData, fetchHistoricalPopulationData, fetchPopulationData, populationWithYear } from '@/lib/api'
 
 interface PopulationState {
   populationData: any;
@@ -16,6 +16,7 @@ interface PopulationState {
   totalPages: number;
   selectedYear: any;
   countriesDataValue:any
+  populationYear:any
 }
 
 const initialState: PopulationState = {
@@ -32,7 +33,8 @@ const initialState: PopulationState = {
   currentPage: 1,
   totalPages: 1,
   selectedYear: 2022,
-  countriesDataValue:[]
+  countriesDataValue:[],
+  populationYear:[]
 
 };
 
@@ -54,9 +56,9 @@ export const fetchHistoricalDataAsync = createAsyncThunk(
     const historicalData= await fetchHistoricalPopulationData(selectedIndicator,selectedTimeRange);
     const populationData= await fetchHistoricalPopulationData("population","10Yrs");
     const averageDensity= await fetchHistoricalPopulationData("populationDensity","10Yrs")
-    console.log({selectedYear})
+    const populationYear=await populationWithYear(selectedYear)
+    console.log({populationYear})
     const countriesDataValue=await fetchPopulationData(selectedYear)
-    console.log(countriesDataValue,'ds')
     const values = averageDensity.map((item: { value: any; }) => item.value).filter((value: null) => value !== null) as number[];
 
     const total = values.reduce((sum, value) => sum + value, 0);
@@ -64,7 +66,6 @@ export const fetchHistoricalDataAsync = createAsyncThunk(
 
     const averageDensityData = average || 0 ; // 
     const lifeExpentancy=await fetchHistoricalPopulationData("lifeExpAtBirth","5Yrs");
-    console.log(lifeExpentancy)
     const sortedData = lifeExpentancy
     .filter((data: { value: null; }) => data.value !== null) // Filter out null values
     .sort((a: { date: number; }, b: { date: number; }) => b.date - a.date); // Sort by date in descending order
@@ -75,39 +76,12 @@ export const fetchHistoricalDataAsync = createAsyncThunk(
     throw new Error("No data available to calculate life expectancy");
   }
   const lifeExpentancyValue= currentYearData.value;
-  return {historicalData,populationData,averageDensityData,lifeExpentancyValue,countriesDataValue}
+  return {historicalData,populationData,averageDensityData,lifeExpentancyValue,countriesDataValue,populationYear}
 
   }
 );
 
-//   'population/populationData',
-//   async (_, { getState }) => {
-//     return await fetchHistoricalPopulationData("population","10Yrs");
-//   }
-// );
-// export const avgDensity = createAsyncThunk(
-//   'population/averageDensity',
-//   async (_, { getState }) => {
-//     return await fetchHistoricalPopulationData("populationDensity","10Yrs");
-//   }
-// );
-// export const lifeExpentancy = createAsyncThunk(
-//   'population/lifeExpentancy',
-//   async (_, { getState }) => {
-//     const res=await fetchHistoricalPopulationData("lifeExpAtBirth","5Yrs");
-//     console.log(res)
-//     const sortedData = res
-//     .filter((data: { value: null; }) => data.value !== null) // Filter out null values
-//     .sort((a: { date: number; }, b: { date: number; }) => b.date - a.date); // Sort by date in descending order
 
-//   const currentYearData = sortedData[0]; // Get the most recent year data
-
-//   if (!currentYearData) {
-//     throw new Error("No data available to calculate life expectancy");
-//   }
-//   return currentYearData.value;
-//   }
-// );
 
 
 // Function to calculate the population increase from the last year
@@ -168,6 +142,7 @@ const populationSlice = createSlice({
         state.populationData=action.payload.lifeExpentancyValue
         state.populationIncrease= calculatePopulationIncrease(action.payload.historicalData)
         state.countriesDataValue=action.payload.countriesDataValue
+        state.populationYear=action.payload.populationYear
       
       })
       .addCase(fetchHistoricalDataAsync.rejected, (state, action) => {

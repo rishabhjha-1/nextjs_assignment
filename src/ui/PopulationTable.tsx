@@ -23,7 +23,8 @@ const PopulationTable = () => {
     selectedYear,
     isLoading,
     error,
-    countriesDataValue
+    countriesDataValue,
+    populationYear
   } = useAppSelector((state: RootState) => state.population);
 
   useEffect(() => {
@@ -80,7 +81,7 @@ const PopulationTable = () => {
             <tbody>
             <tr >
                   <td className="px-4 py-2 border-r border-gray-300">World</td>
-                  <td className="px-4 py-2 border-r border-gray-300">{historicalData[0]?.value}</td>
+                  <td className="px-4 py-2 border-r border-gray-300">{populationYear?.value}</td>
                   <td className="px-4 py-2 border-r border-gray-300">{(populationIncrease / 1000000).toFixed(1)}</td>
                   <td className="px-4 py-2 border-r border-gray-300"> {lifeExpentancyValue.toFixed(1)}</td>
                   <td className="px-4 py-2 border-r border-gray-300">{'-'}</td>

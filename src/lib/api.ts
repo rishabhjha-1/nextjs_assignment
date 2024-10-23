@@ -54,7 +54,6 @@ export async function fetchCountryData(
   page: number,
   pageSize: number = 50
 ) {
-  const indicators = Object.values(INDICATORS).join(";");
   const response = await fetch(
     `${BASE_URL}/country?date=${year}&format=json&per_page=${pageSize}&page=${page}`
   );
@@ -69,6 +68,13 @@ export async function fetchCountryData(
   };
 }
 
+export async function populationWithYear(selectedYear:any){
+  const populationPerYear= await fetch(
+      `${BASE_URL}/country/WLD/indicator/SP.POP.TOTL?date=${selectedYear}&format=json`
+  );
+const data=await populationPerYear.json();
+return data[1][0]
+}
 
 
 
@@ -94,6 +100,7 @@ export const fetchPopulationData = async (selectedYear: any) => {
         ),
       ]);
 
+
     const countryData = await countryRes.json();
     const populationData = await populationRes.json();
     const birthRateData = await birthRateRes.json();
@@ -103,9 +110,6 @@ export const fetchPopulationData = async (selectedYear: any) => {
     const countryMap = new Map(
       countryData[1]?.map((country: any) => [country.id, country])
     );
-
-    console.log("Country Map:", Array.from(countryMap.keys()));
-
     const populationMap = new Map(
       populationData[1]?.map((item: any) => [item.countryiso3code, item.value])
     );
@@ -118,8 +122,6 @@ export const fetchPopulationData = async (selectedYear: any) => {
     const densityMap = new Map(
       densityData[1]?.map((item: any) => [item.countryiso3code, item.value])
     );
-    console.log({ populationData });
-    console.log("Population Map:", Array.from(populationMap.keys()));
 
     const combinedData = Array.from(countryMap.values()).map((country: any) => {
       const isoCode = country?.id;
@@ -132,7 +134,6 @@ export const fetchPopulationData = async (selectedYear: any) => {
       };
     });
 
-    console.log(combinedData, "combinedData");
     return combinedData;
   } catch (error: any) {
     throw new Error("Failed to fetch population data: " + error.message);
