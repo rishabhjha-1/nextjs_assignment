@@ -100,7 +100,6 @@ export const fetchPopulationData = async (selectedYear: any) => {
         ),
       ]);
 
-
     const countryData = await countryRes.json();
     const populationData = await populationRes.json();
     const birthRateData = await birthRateRes.json();
